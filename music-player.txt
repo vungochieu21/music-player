@@ -1,0 +1,34 @@
+music-player/
+│
+├── data/                      # Thư mục chứa các file text/json để File I/O
+│   ├── songs.txt              # Lưu danh sách bài hát (ID, Tên, Tác giả, Thể loại)
+│   └── playlists.txt          # Lưu thông tin các playlist
+│
+├── src/
+│   ├── models/                # + Cấu trúc Bài hát, Album
+│   │   ├── Song.java          # Metadata của Bài hát
+│   │   ├── Album.java         # Danh sách bài hát thuộc một Album
+│   │   └── Playlist.java      # Danh sách bài hát tổng quát
+│   │
+│   ├── iterator/              # + Duyệt Playlist (Design Pattern Iterator)
+│   │   ├── PlaylistIterator.java # Interface định nghĩa các hàm next(), hasNext()
+│   │   ├── SequentialIterator.java # Duyệt tuần tự
+│   │   ├── RepeatIterator.java     # Lặp lại bài hát/playlist
+│   │   └── ShuffleIterator.java    # Duyệt xáo trộn (Ngẫu nhiên không trùng)
+│   │
+│   ├── factory/               # + Smart Playlist (Design Pattern Factory)
+│   │   ├── SmartPlaylistFactory.java # Class chính để tạo playlist tự động
+│   │   ├── GenrePlaylist.java        # Gom bài hát theo Thể loại
+│   │   └── ArtistPlaylist.java       # Gom bài hát theo Tác giả
+│   │
+│   ├── search/                # + Thuật toán tìm kiếm gần đúng
+│   │   └── SearchEngine.java  # Áp dụng thuật toán Levenshtein hoặc Fuzzy Search
+│   │
+│   ├── io/                    # + File I/O
+│   │   └── DataManager.java   # Đọc/Ghi dữ liệu bài hát từ file text trong thư mục data/
+│   │
+│   └── ui/                    # + UI trình phát giả lập
+│       ├── ConsoleMenu.java   # Quản lý hiển thị menu chữ, nhận input (1, 2, 3...)
+│       └── AudioPlayerSim.java # Giả lập phát nhạc (In ra console thanh Progress Bar: [===>    ] 30%)
+│
+└── Main.java                  # File chạy chính của chương trình
