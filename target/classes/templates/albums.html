@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>MusicPlayer - Albums</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/player-style.css}">
+    
+    <style>
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            padding-top: 20px;
+        }
+        .album-card {
+            background: #181818;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        .album-card:hover {
+            background: #282828;
+            transform: translateY(-5px);
+        }
+        .album-art {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #454545, #222);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 3rem;
+            color: #b3b3b3;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .album-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .album-count {
+            font-size: 0.85rem;
+            color: #b3b3b3;
+            margin-top: 6px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="audioEngine" th:src="${currentSong != null} ? @{'/audio/' + ${currentSong.id} + '.mp3'} : ''" crossorigin="anonymous"></audio>
+
+    <div class="hybrid-header">
+        <div class="container-align header-inner">
+            <a th:href="@{/}" class="web-logo">MusicPlayer</a>
+            <div class="search-box">
+                <form th:action="@{/}" method="get" style="width: 100%; display: flex;">
+                    <input type="text" name="keyword" placeholder="Tìm bài hát, nghệ sĩ..." />
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-align">
+        <div class="main-layout">
+            
+            <div class="spotify-sidebar">
+                <ul class="sidebar-menu">
+                    <li><a th:href="@{/}" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-compass"></i> Khám phá</a></li>
+                    <li><a th:href="@{/library}" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-music"></i> Thư viện cá nhân</a></li>
+                    
+                    <li class="menu-heading" style="padding: 10px 16px; color: #b3b3b3; font-size: 0.85rem; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">ALBUMS</li>
+                    
+                    <li th:classappend="${type == 'artist'} ? 'active-menu' : ''">
+                        <a th:href="@{/albums(groupBy='artist')}" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-microphone"></i> Theo Ca sĩ</a>
+                    </li>
+                    <li th:classappend="${type == 'genre'} ? 'active-menu' : ''">
+                        <a th:href="@{/albums(groupBy='genre')}" style="color: inherit; text-decoration: none;"><i class="fa-solid fa-sliders"></i> Theo Thể loại</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="content-area">
+                <h2 class="track-list-title" th:text="${title}">Danh Sách Album</h2>
+                
+                <div class="album-grid">
+                    <a th:each="album : ${albums}" 
+                       th:href="@{/(type=${type}, value=${album.key})}" 
+                       class="album-card">
+                        
+                        <div class="album-art">
+                            <i th:class="${type == 'artist'} ? 'fa-solid fa-microphone' : 'fa-solid fa-compact-disc'"></i>
+                        </div>
+                        <p class="album-title" th:text="${album.key}">Tên Album</p>
+                        <span class="album-count" th:text="${album.value + ' bài hát'}">0 bài hát</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="hybrid-player-bar">
+        <div class="container-align player-bar-inner">
+            
+            <div class="sc-controls">
+                <a href="#" class="sc-btn" id="shuffleBtn" onclick="toggleShuffle(event)">
+                    <i class="fa-solid fa-shuffle"></i>
+                </a>
+                
+                <a href="#" class="sc-btn" onclick="prevSong(event)"><i class="fa-solid fa-backward-step"></i></a>
+
+                <a href="#" class="sc-btn sc-btn-play" id="mainPlayBtn" onclick="togglePlayPause(event)">
+                    <i class="fa-solid fa-circle-play"></i>
+                </a>
+
+                <a href="#" class="sc-btn" onclick="nextSong(event)"><i class="fa-solid fa-forward-step"></i></a>
+                
+                <a href="#" class="sc-btn" id="repeatBtn" onclick="toggleRepeat(event)">
+                    <i class="fa-solid fa-repeat"></i>
+                    <span id="repeatBadge" class="sc-badge-one" style="display: none;">1</span>
+                </a>
+            </div>
+
+            <div class="sc-middle-container">
+                <span class="sc-time" id="currentTimeText">00:00</span>
+                <div class="sc-waveform-wrapper" id="canvasWrapper" onclick="seekAudio(event)">
+                    <canvas id="scCanvas"></canvas>
+                </div>
+                <span class="sc-time total" id="totalTimeText" th:text="${currentSong != null} ? ${currentSong.duration} : '00:00'">00:00</span>
+            </div>
+
+            <div class="sc-right-container">
+                <i class="fa-regular fa-heart sc-fav-btn" id="playerFavBtn"></i>
+                
+                <div class="sc-volume-wrapper-vertical">
+                    <i class="fa-solid fa-volume-high sc-volume-icon-btn" id="volumeIcon" onclick="toggleVolumePopover(event)" ondblclick="toggleMute(event)"></i>
+                    <div class="sc-volume-popover" id="volumePopover">
+                        <input type="range" class="sc-volume-slider-vertical" id="volumeSlider" min="0" max="1" step="0.01" value="1" oninput="changeVolume(this.value)">
+                    </div>
+                </div>
+
+                <div class="sc-mini-thumb"><i class="fa-solid fa-music" style="color: rgba(255,255,255,0.4);"></i></div>
+                <div class="sc-meta-text">
+                    <h5 id="playerTitle" th:text="${currentSong != null} ? ${currentSong.title} : 'Chưa chọn bài'">Tên Bài Hát</h5>
+                    <span id="playerArtist" th:text="${currentSong != null} ? ${currentSong.artist} : 'Ca sĩ'">Ca sĩ</span>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        window.libraryData = []; 
+        window.currentSongData = /*[[${currentSong}]]*/ null;
+    </script>
+    
+    <script th:src="@{/js/player-engine.js}"></script>
+</body>
+</html>
